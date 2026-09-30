@@ -1,0 +1,149 @@
+/* =========================================================
+ * B4 포스터 (257mm × 364mm) — 화면 미리보기와 인쇄에 함께 씀
+ * 흑백 프린터에서도 잘 보이도록 검은 선 위주로 구성
+ * ========================================================= */
+.poster {
+  width: 257mm;
+  height: 364mm;
+  padding: 11mm 12mm 11mm;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4mm;
+  overflow: hidden;
+  background: #fff;
+  color: #111;
+  font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.4;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.poster h2 { font-size: 11pt; font-weight: 800; margin: 0 0 1.6mm; }
+.poster h2 small { font-size: 9pt; font-weight: 600; color: #555; margin-left: 1.5mm; }
+.poster ol { margin: 0; padding: 0; list-style: none; }
+
+/* 빈칸: 인쇄 후 손으로 채울 수 있게 밑줄 */
+.p-blank { display: inline-block; width: 22mm; border-bottom: 0.3mm solid #999; vertical-align: -0.6mm; }
+.p-blank-wide { width: 70mm; height: 10mm; }
+
+/* 머리 */
+.p-head {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6mm;
+  padding-bottom: 2.5mm;
+  border-bottom: 1mm solid #111;
+}
+.p-country { margin: 0; font-size: 28pt; font-weight: 900; letter-spacing: -0.02em; line-height: 1.1; }
+.p-who { margin: 0; font-size: 11pt; white-space: nowrap; }
+
+/* 공통 상자 */
+.p-box {
+  border: 0.35mm solid #333;
+  border-radius: 2mm;
+  padding: 2.4mm 3.5mm;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* 기본 정보 — 작은 칸, 작은 글씨 */
+.p-basic { flex: none; height: 30mm; }
+.p-basic dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.2mm 4mm;
+  font-size: 8.5pt;
+  line-height: 1.35;
+}
+.p-basic dl div { display: flex; gap: 1.5mm; min-width: 0; }
+.p-basic dt { flex: none; font-weight: 700; color: #444; }
+.p-basic dd { margin: 0; min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
+
+/* 여행 코스 — 기본 정보의 약 2배 */
+.p-trip { flex: none; height: 72mm; display: flex; flex-direction: column; }
+.p-days {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 2mm;
+}
+.p-day {
+  display: grid;
+  grid-template-columns: 11mm minmax(0, 1fr);
+  gap: 1.5mm;
+  border: 0.25mm solid #999;
+  border-radius: 1.5mm;
+  padding: 1.5mm 2.5mm 1.5mm 1.5mm;
+  overflow: hidden;
+  font-size: 8.7pt;
+  line-height: 1.3;
+}
+.p-day-no {
+  font-weight: 800;
+  font-size: 9pt;
+  text-align: center;
+  border-right: 0.25mm solid #ccc;
+  padding-top: 0.3mm;
+}
+.p-day ol { display: flex; flex-direction: column; gap: 0.8mm; }
+.p-day li { word-break: keep-all; overflow-wrap: anywhere; }
+.p-day li b { font-weight: 700; }
+.p-day li span { color: #444; }
+
+/* 그림 칸 — 남는 높이를 모두 차지 */
+.p-draw-row {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4mm;
+}
+.p-draw { display: flex; flex-direction: column; }
+.p-draw-cap { margin: 0; font-size: 9pt; word-break: keep-all; }
+.p-draw-area {
+  flex: 1;
+  margin-top: 2mm;
+  border: 0.3mm dashed #aaa;
+  border-radius: 1.5mm;
+}
+
+/* 여행 회화 + 다른 문화 */
+.p-bottom-row {
+  flex: none;
+  height: 64mm;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 4mm;
+}
+.p-phrases ol, .p-diffs ol { display: flex; flex-direction: column; gap: 1.3mm; }
+.p-phrases li { font-size: 8.8pt; line-height: 1.3; }
+.p-ph-top { font-weight: 700; word-break: keep-all; overflow-wrap: anywhere; }
+.p-pron { font-weight: 500; color: #333; }
+.p-ph-sub { color: #444; }
+.p-situ { color: #777; }
+
+.p-diffs ol { counter-reset: diff; gap: 2mm; }
+.p-diffs li { counter-increment: diff; display: flex; gap: 1.5mm; word-break: keep-all; overflow-wrap: anywhere; }
+.p-diffs li::before { content: counter(diff) '.'; font-weight: 800; flex: none; }
+
+/* 느낀 점 */
+.p-feel { flex: none; height: 32mm; }
+.p-feel p { margin: 0; white-space: pre-wrap; word-break: keep-all; overflow-wrap: anywhere; }
+
+/* ---------- 인쇄 ---------- */
+@page { size: 257mm 364mm; margin: 0; }
+
+@media print {
+  html, body { background: #fff !important; margin: 0; padding: 0; }
+  body > *:not(#printArea) { display: none !important; }
+  #printArea { display: block !important; }
+  #printArea .poster { transform: none !important; page-break-after: always; break-after: page; }
+  #printArea .poster:last-child { page-break-after: auto; break-after: auto; }
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>세계 문화 탐구 포스터</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/student.css">
+  <link rel="stylesheet" href="css/poster.css">
+</head>
+<body class="student">
+
+  <!-- ===== 로그인 ===== -->
+  <section id="loginView" class="login-view">
+    <div class="passport">
+      <p class="passport-sub">2학년 도덕 다문화 수행평가</p>
+      <h1 class="passport-title">세계 문화<br>탐구 여권</h1>
+      <div class="passport-emblem" aria-hidden="true"></div>
+
+      <div id="loginForm" class="passport-form">
+        <div class="row2">
+          <label class="field"><span>반</span><select id="loginCls"></select></label>
+          <label class="field"><span>번호</span><select id="loginNum"></select></label>
+        </div>
+        <label class="field"><span>비밀번호</span>
+          <input id="loginPw" type="password" maxlength="20" autocomplete="off">
+        </label>
+        <button id="loginBtn" class="btn-gold">들어가기</button>
+        <p class="passport-hint">처음 들어올 때는 비밀번호를 비워 두고 들어가기를 눌러요.</p>
+      </div>
+
+      <div id="setupForm" class="passport-form" hidden>
+        <p class="passport-hint strong"><span id="setupWho"></span> 처음 왔어요. 이름을 확인하고 비밀번호를 만들어요.</p>
+        <label class="field"><span>이름</span><input id="setupName" type="text" maxlength="10" autocomplete="off"></label>
+        <label class="field"><span>새 비밀번호 (4자 이상)</span><input id="setupPw" type="password" maxlength="20" autocomplete="off"></label>
+        <label class="field"><span>비밀번호 한 번 더</span><input id="setupPw2" type="password" maxlength="20" autocomplete="off"></label>
+        <button id="setupBtn" class="btn-gold">비밀번호 만들고 들어가기</button>
+        <button id="setupBack" class="btn-link">처음 화면으로</button>
+      </div>
+
+      <p id="loginMsg" class="passport-msg" role="alert"></p>
+    </div>
+  </section>
+
+  <!-- ===== 작성 화면 ===== -->
+  <section id="editView" hidden>
+    <header class="topbar">
+      <div class="who"><b id="whoName"></b><span id="whoInfo"></span></div>
+      <div class="progress" aria-label="작성 진행률">
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <span id="progressText">0%</span>
+      </div>
+      <button id="logoutBtn" class="btn-quiet">나가기</button>
+    </header>
+
+    <div id="lockBanner" class="banner banner-lock page-banner" hidden>
+      선생님이 수정을 마감했어요. 내용은 볼 수 있지만 고칠 수는 없어요.
+    </div>
+
+    <main id="formRoot" class="form-root">
+      <section class="card">
+        <h2><span class="step">1</span>조사할 나라</h2>
+        <select id="country" class="country-select"></select>
+        <p id="countryMsg" class="banner" hidden></p>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">2</span>기본 정보</h2>
+        <p class="card-hint">책이나 인터넷에서 찾아 적어요. 면적은 한국과 비교해 적으면 더 알기 쉬워요.</p>
+        <div id="basicGrid" class="grid-basic"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">3</span>음식과 전통의상</h2>
+        <p class="card-hint">이름과 한 줄 소개만 적어요. 그림은 포스터를 인쇄한 뒤 빈칸에 직접 그려요.</p>
+        <div id="drawGrid" class="grid-two"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">4</span>여행 코스</h2>
+        <p class="card-hint">하루에 세 곳씩, 장소와 그곳에서 할 일을 적어요.</p>
+        <label class="field field-inline"><span>여행 기간</span>
+          <select id="tripDaysSel">
+            <option value="2">1박 2일</option>
+            <option value="3">2박 3일</option>
+            <option value="4">3박 4일</option>
+          </select>
+        </label>
+        <div id="tripDays" class="days"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">5</span>여행 회화</h2>
+        <p class="card-hint">여행에서 쓸 수 있는 말을 그 나라 말로 찾아 적어요. 문장 5는 내가 고른 말로 채워도 돼요.</p>
+        <div id="phraseList" class="phrases"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">6</span>우리나라와 다른 문화 3가지</h2>
+        <div id="diffList" class="diffs"></div>
+      </section>
+
+      <section class="card">
+        <h2><span class="step">7</span>느낀 점</h2>
+        <textarea id="feeling" data-k="feeling" rows="5" placeholder="이 나라를 조사하며 새롭게 알게 된 점, 존중하고 싶은 점을 적어요."></textarea>
+        <p id="feelingCount" class="counter"></p>
+      </section>
+    </main>
+
+    <footer class="savebar">
+      <span id="saveState" class="save-state never">아직 저장하지 않았어요</span>
+      <div class="savebar-btns">
+        <button id="previewBtn">미리보기</button>
+        <button id="saveBtn" class="btn-primary">저장</button>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ===== 포스터 미리보기 ===== -->
+  <div id="previewOverlay" class="overlay" hidden>
+    <div class="overlay-inner">
+      <div class="overlay-head">
+        <b>포스터 미리보기</b>
+        <button id="previewClose">닫기</button>
+      </div>
+      <div id="previewBox" class="poster-fit"></div>
+    </div>
+  </div>
+
+  <div id="printArea"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/poster.js"></script>
+  <script src="js/form.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

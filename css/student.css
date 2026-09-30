@@ -1,0 +1,226 @@
+/* =========================================================
+ * 학생 페이지 — 여권 모양 로그인 + 작성 화면
+ * ========================================================= */
+
+/* ---------- 여권 로그인 ---------- */
+.login-view {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.passport {
+  width: min(420px, 100%);
+  padding: 36px 30px 28px;
+  border-radius: 14px 22px 22px 14px;
+  background: var(--sea-deep);
+  color: #F3EBD6;
+  border-left: 10px solid #0B2F37;
+}
+
+.passport-sub { margin: 0; font-size: 14px; color: #BFD3D6; }
+
+.passport-title {
+  margin-top: 10px;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--gold);
+}
+
+/* 여권 표지의 지구 문양 */
+.passport-emblem {
+  width: 72px;
+  height: 72px;
+  margin: 22px 0 24px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background:
+    linear-gradient(var(--gold), var(--gold)) center / 2px 100% no-repeat,
+    linear-gradient(var(--gold), var(--gold)) center / 100% 2px no-repeat;
+  box-shadow: inset 0 0 0 14px var(--sea-deep), inset 0 0 0 16px var(--gold);
+}
+
+.passport-form { display: flex; flex-direction: column; gap: 14px; }
+.passport .field > span { color: #CFE0E2; }
+.passport input, .passport select { border-color: transparent; color: var(--ink); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-gold {
+  margin-top: 4px;
+  min-height: 52px;
+  border: none;
+  background: var(--gold);
+  color: #2B2004;
+  font-size: 17px;
+  font-weight: 700;
+}
+.btn-gold:hover:not(:disabled) { background: #EFCB6E; }
+
+.passport .btn-link { color: #CFE0E2; align-self: center; }
+
+.passport-hint { margin: 0; font-size: 14px; color: #BFD3D6; }
+.passport-hint.strong { color: #F3EBD6; font-size: 15px; }
+
+.passport-msg { min-height: 22px; margin: 14px 0 0; font-size: 15px; color: #FFD0C4; }
+
+/* ---------- 상단 막대 ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--sea-deep);
+  color: #fff;
+}
+.who { display: flex; flex-direction: column; line-height: 1.3; }
+.who b { font-size: 17px; }
+.who span { font-size: 13px; color: #BFD3D6; }
+
+.progress { flex: 1; display: flex; align-items: center; gap: 10px; max-width: 360px; margin-left: auto; }
+.progress-track { flex: 1; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.18); overflow: hidden; }
+.progress-fill { height: 100%; width: 0; background: var(--gold); transition: width 0.3s; }
+#progressText { font-size: 14px; font-weight: 700; min-width: 40px; text-align: right; }
+.topbar .btn-quiet { color: #CFE0E2; }
+
+.page-banner { max-width: 820px; margin: 16px auto 0; }
+
+/* ---------- 작성 카드 ---------- */
+.form-root {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 18px 16px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.card h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.step {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--sea);
+  color: var(--sea);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.card-hint { margin: -4px 0 14px; font-size: 15px; color: var(--ink-2); }
+
+.country-select { font-size: 18px; font-weight: 600; }
+
+.grid-basic { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+.grid-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+
+.sub-card {
+  border: 1px dashed var(--line-2);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sub-card h3 { font-size: 16px; }
+
+/* 여행 코스 */
+.field-inline { flex-direction: row; align-items: center; gap: 10px; margin-bottom: 14px; }
+.field-inline select { width: auto; min-width: 140px; }
+
+.days { display: flex; flex-direction: column; gap: 12px; }
+.day { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; align-items: start; }
+.day-label {
+  padding: 10px 0;
+  border-radius: 8px;
+  background: var(--sea-tint);
+  color: var(--sea-deep);
+  font-weight: 700;
+  font-size: 15px;
+  text-align: center;
+}
+.day-slots { display: flex; flex-direction: column; gap: 8px; }
+.slot { display: grid; grid-template-columns: 22px minmax(0, 2fr) minmax(0, 3fr); gap: 8px; align-items: center; }
+.slot-no { font-size: 14px; color: var(--muted); text-align: center; font-weight: 700; }
+
+/* 여행 회화 */
+.phrases { display: flex; flex-direction: column; gap: 12px; }
+.phrase { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.phrase-head { font-weight: 700; font-size: 15px; margin-bottom: 8px; color: var(--sea-deep); }
+.phrase-head em { font-style: normal; font-weight: 600; font-size: 13px; color: var(--muted); margin-left: 4px; }
+.phrase-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+
+/* 다른 문화 */
+.diffs { display: flex; flex-direction: column; gap: 10px; }
+.field-row { flex-direction: row; align-items: center; gap: 10px; }
+.num-dot {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sea-tint);
+  color: var(--sea-deep) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px !important;
+}
+
+.counter { margin: 6px 0 0; text-align: right; font-size: 13px; color: var(--muted); }
+
+/* ---------- 하단 저장 막대 ---------- */
+.savebar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--card);
+  border-top: 1px solid var(--line);
+}
+.savebar-btns { display: flex; gap: 10px; }
+.savebar #saveBtn { min-width: 120px; font-size: 17px; }
+
+.save-state { font-size: 14px; color: var(--ink-2); }
+.save-state.saved { color: var(--ok-ink); font-weight: 600; }
+.save-state.dirty { color: var(--warn-ink); font-weight: 600; }
+.save-state.locked { color: var(--sea-deep); font-weight: 600; }
+
+/* ---------- 좁은 화면 (휴대폰) ---------- */
+@media (max-width: 600px) {
+  .grid-basic, .grid-two, .phrase-grid { grid-template-columns: 1fr; }
+  .slot { grid-template-columns: 18px minmax(0, 1fr); }
+  .slot .slot-desc { grid-column: 2; }
+  .day { grid-template-columns: 1fr; }
+  .progress { max-width: none; }
+  .who span { display: none; }
+}

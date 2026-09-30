@@ -1,0 +1,98 @@
+/* =========================================================
+ * 교사 대시보드
+ * ========================================================= */
+.t-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.t-login-card {
+  width: min(380px, 100%);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.t-login-card h1 { font-size: 22px; }
+.t-msg { min-height: 22px; margin: 0; color: var(--err-ink); font-size: 15px; }
+
+.t-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--sea-deep);
+  color: #fff;
+}
+.t-top h1 { font-size: 19px; }
+.t-top-btns { display: flex; gap: 8px; }
+.t-top button { color: var(--ink); }
+.t-top .btn-quiet { color: #CFE0E2; }
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  padding: 14px 24px 0;
+  max-width: 1100px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--line);
+}
+.tabs button {
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 16px;
+}
+.tabs button[aria-selected="true"] {
+  background: var(--card);
+  border-color: var(--line);
+  color: var(--ink);
+  margin-bottom: -1px;
+}
+.tabs small { font-weight: 500; color: var(--muted); }
+.tabs i { font-style: normal; font-size: 12px; padding: 2px 6px; border-radius: 6px; background: var(--sea-tint); color: var(--sea-deep); }
+
+.class-panel { max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; }
+
+.class-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.class-head h2 { font-size: 22px; }
+.class-actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.badge { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 99px; }
+.badge-open { background: #E3F2E8; color: var(--ok-ink); }
+.badge-lock { background: var(--sea-tint); color: var(--sea-deep); }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0 12px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+.stat span { display: block; font-size: 13px; color: var(--ink-2); }
+.stat b { font-size: 22px; }
+
+.country-box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; margin-bottom: 14px; }
+.country-box summary { cursor: pointer; font-weight: 600; }
+.country-box ul { margin: 10px 0 4px; padding-left: 18px; columns: 2; font-size: 15px; }
+
+.table-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 13px; color: var(--ink-2); font-weight: 600; background: #F6F8F9; }
+tr:last-child td { border-bottom: none; }
+
+.status { display: flex; align-items: center; gap: 8px; }
+.mini-bar { width: 90px; height: 7px; border-radius: 99px; background: #E6ECEF; overflow: hidden; }
+.mini-bar div { height: 100%; background: var(--sea); }
+.pct { font-size: 13px; font-weight: 600; min-width: 36px; }
+
+.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.row-actions button { min-height: 36px; padding: 0 12px; font-size: 14px; }
+
+@media (max-width: 700px) {
+  .stats { grid-template-columns: 1fr; }
+  .country-box ul { columns: 1; }
+}
