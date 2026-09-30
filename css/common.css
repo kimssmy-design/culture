@@ -190,3 +190,14 @@ button:focus-visible { outline: 3px solid rgba(28, 110, 125, 0.35); outline-offs
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+/* ---------- 오래 걸릴 때 안내 ---------- */
+.slow-hint {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  font-size: 15px;
+  line-height: 1.5;
+}

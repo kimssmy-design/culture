@@ -152,7 +152,26 @@ var Common = (function () {
     }
   }
 
+  // 요청이 오래 걸리면 안내 문구를 단계별로 보여줌. 끝나면 돌려받은 함수를 부르면 사라짐
+  function slowHint(el) {
+    if (!el) return function () {};
+    var t1 = setTimeout(function () {
+      el.textContent = '서버를 깨우는 중이에요. 잠시만 기다려 주세요.';
+      el.hidden = false;
+    }, 5000);
+    var t2 = setTimeout(function () {
+      el.textContent = '조금 더 걸리고 있어요. 창을 닫지 말고 기다려 주세요.';
+    }, 15000);
+    return function () {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      el.hidden = true;
+      el.textContent = '';
+    };
+  }
+
   return {
+    slowHint: slowHint,
     TRIP_LABELS: TRIP_LABELS,
     DEFAULT_MEANS: DEFAULT_MEANS,
     BASIC_FIELDS: BASIC_FIELDS,

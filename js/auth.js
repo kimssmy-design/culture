@@ -45,6 +45,7 @@ var Auth = (function () {
     var btn = $('loginBtn');
     showMsg('');
     Common.setBusy(btn, true, '확인 중');
+    var stopHint = Common.slowHint($('loginSlow'));
     try {
       var res = await Api.call('login', { cls: cls, num: num, pw: pw });
       if (res.ok) {
@@ -57,6 +58,7 @@ var Auth = (function () {
     } catch (e) {
       showMsg('연결이 원활하지 않아요. 잠시 후 다시 눌러 주세요.');
     } finally {
+      stopHint();
       Common.setBusy(btn, false);
     }
   }
@@ -75,6 +77,7 @@ var Auth = (function () {
     var btn = $('setupBtn');
     showMsg('');
     Common.setBusy(btn, true, '만드는 중');
+    var stopHint = Common.slowHint($('loginSlow'));
     try {
       var res = await Api.call('setpw', { cls: cls, num: num, name: name, pw: pw });
       if (res.ok) enter(cls, num, pw, res);
@@ -82,6 +85,7 @@ var Auth = (function () {
     } catch (e) {
       showMsg('연결이 원활하지 않아요. 잠시 후 다시 눌러 주세요.');
     } finally {
+      stopHint();
       Common.setBusy(btn, false);
     }
   }

@@ -8,6 +8,10 @@
  *
  * 처음 한 번은 편집기에서 setupSheets 함수를 직접 실행하세요.
  *
+ * [속도] 학생명단·설정은 1분 동안 서버 기억장치(캐시)에 담아 둡니다.
+ *        시트를 손으로 고치면 학생 화면에는 최대 1분 뒤에 반영돼요.
+ *        (비밀번호 초기화·수정금지 버튼은 바로 반영)
+ *
  * [안정화 규칙]
  *  - var 사용 (const/let 사용 안 함)
  *  - 함수 매개변수 구조분해 사용 안 함 (params.xxx 로 꺼냄)
@@ -37,6 +41,10 @@ var DATA_HEADERS = [
 var COL_COUNTRY = 4;   // 1부터 세는 열 번호
 var COL_SAVED = 5;
 var COL_JSON = DATA_HEADERS.length;
+var INDEX_COLS = 5;          // 반, 번호, 이름, 나라, 마지막 저장 — 빠른 조회용
+var CACHE_SEC = 60;          // 명단·설정을 서버 기억장치에 담아 두는 시간(초)
+var CACHE_ROSTER = 'roster_v1';
+var CACHE_SETTINGS = 'settings_v1';
 
 /* =========================================================
  * 처음 한 번 실행: 시트 자동 생성
@@ -115,10 +123,10 @@ function handleLogin(params) {
   var num = numKey_(params.num);
   var pw = String(params.pw == null ? '' : params.pw);
 
-  var found = findStudent_(cls, num);
+  var found = verifyStudent_(cls, num, pw);
   if (!found.ok) return found;
   if (!found.hash) return { ok: false, status: 'no_pw' };
-  if (found.hash !== hashPw_(cls, num, pw)) {
+  if (!found.match) {
     return { ok: false, msg: '비밀번호가 맞지 않아요. 잊어버렸다면 선생님께 말씀드려요.' };
   }
   return studentPayload_(cls, num, found.name);
@@ -137,14 +145,15 @@ function handleSetPw(params) {
   catch (e) { return { ok: false, msg: '잠시 후 다시 시도해 주세요. (서버 혼잡)' }; }
 
   try {
-    var found = findStudent_(cls, num);
+    var found = findStudent_(cls, num, true);
     if (!found.ok) return found;
     if (found.hash) return { ok: false, msg: '이미 비밀번호가 있어요. 처음 화면에서 비밀번호로 들어가 주세요.' };
     if (removeSpaces_(found.name) !== removeSpaces_(name)) {
       return { ok: false, msg: '이름이 명단과 달라요. 반, 번호, 이름을 다시 확인해 주세요.' };
     }
-    found.sheet.getRange(found.row, 4).setNumberFormat('@').setValue(hashPw_(cls, num, pw));
+    getRosterSheet_().getRange(found.row, 4).setNumberFormat('@').setValue(hashPw_(cls, num, pw));
     SpreadsheetApp.flush();
+    clearCache_(CACHE_ROSTER);
     return studentPayload_(cls, num, found.name);
   } finally {
     lock.releaseLock();
@@ -175,7 +184,7 @@ function handleSave(params) {
     }
 
     var sh = getDataSheet_();
-    var rows = sh.getDataRange().getValues();
+    var rows = readIndex_(sh);   // 반·번호·이름·나라·저장시각 5칸만
     var country = norm_(d.country);
     var targetIndex = -1;
     var counts = {};
@@ -225,9 +234,8 @@ function handleTeacherLoad(params) {
     classes[CLASS_LIST[c]] = { cls: CLASS_LIST[c], locked: isLocked_(t.settings, CLASS_LIST[c]), students: [] };
   }
 
-  var roster = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ROSTER);
-  if (!roster) return { ok: false, msg: '학생명단 시트가 없어요. setupSheets를 먼저 실행해 주세요.' };
-  var rrows = roster.getDataRange().getValues();
+  var rrows = readRoster_(true);
+  if (!rrows) return { ok: false, msg: '학생명단 시트가 없어요. setupSheets를 먼저 실행해 주세요.' };
   var index = {};
   for (var i = 1; i < rrows.length; i++) {
     var cls = numKey_(rrows[i][0]);
@@ -268,6 +276,7 @@ function handleTeacherLock(params) {
   try {
     writeSetting_('수정금지_' + cls + '반', locked ? 'TRUE' : 'FALSE');
     SpreadsheetApp.flush();
+    clearCache_(CACHE_SETTINGS);
     return { ok: true, cls: cls, locked: locked };
   } finally {
     lock.releaseLock();
@@ -284,10 +293,11 @@ function handleTeacherResetPw(params) {
   try { lock.waitLock(10000); }
   catch (e) { return { ok: false, msg: '잠시 후 다시 시도해 주세요.' }; }
   try {
-    var found = findStudent_(cls, num);
+    var found = findStudent_(cls, num, true);
     if (!found.ok) return found;
-    found.sheet.getRange(found.row, 4).setNumberFormat('@').setValue('');
+    getRosterSheet_().getRange(found.row, 4).setNumberFormat('@').setValue('');
     SpreadsheetApp.flush();
+    clearCache_(CACHE_ROSTER);
     return { ok: true };
   } finally {
     lock.releaseLock();
@@ -329,28 +339,79 @@ function hashPw_(cls, num, pw) {
   return hex;
 }
 
-function findStudent_(cls, num) {
+function getRosterSheet_() {
+  return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ROSTER);
+}
+
+/* ---------- 서버 기억장치(캐시) ---------- */
+function cacheGet_(key) {
+  try {
+    var v = CacheService.getScriptCache().get(key);
+    return v ? JSON.parse(v) : null;
+  } catch (e) { return null; }
+}
+function cachePut_(key, value) {
+  try {
+    var text = JSON.stringify(value);
+    if (text.length < 90000) CacheService.getScriptCache().put(key, text, CACHE_SEC);
+  } catch (e) { /* 캐시 실패는 무시하고 시트에서 읽음 */ }
+}
+function clearCache_(key) {
+  try { CacheService.getScriptCache().remove(key); } catch (e) {}
+}
+
+// 학생명단 전체(반, 번호, 이름, 비밀번호). fresh=true면 캐시를 건너뜀
+function readRoster_(fresh) {
+  if (!fresh) {
+    var cached = cacheGet_(CACHE_ROSTER);
+    if (cached) return cached;
+  }
+  var sheet = getRosterSheet_();
+  if (!sheet) return null;
+  var last = sheet.getLastRow();
+  var rows = last > 0 ? sheet.getRange(1, 1, last, 4).getValues() : [];
+  for (var i = 0; i < rows.length; i++) {
+    for (var j = 0; j < 4; j++) rows[i][j] = norm_(rows[i][j]);
+  }
+  cachePut_(CACHE_ROSTER, rows);
+  return rows;
+}
+
+function findStudent_(cls, num, fresh) {
   if (!cls || !num) return { ok: false, msg: '반과 번호를 골라 주세요.' };
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ROSTER);
-  if (!sheet) return { ok: false, msg: '학생명단 시트가 없어요. 선생님께 알려 주세요.' };
-  var rows = sheet.getDataRange().getValues();
+  var rows = readRoster_(fresh);
+  if (!rows) return { ok: false, msg: '학생명단 시트가 없어요. 선생님께 알려 주세요.' };
   for (var i = 1; i < rows.length; i++) {
     if (numKey_(rows[i][0]) === cls && numKey_(rows[i][1]) === num) {
       var name = norm_(rows[i][2]);
       if (!name) return { ok: false, msg: '명단에 이름이 아직 없어요. 선생님께 말씀드려 주세요.' };
-      return { ok: true, sheet: sheet, row: i + 1, name: name, hash: norm_(rows[i][3]) };
+      return { ok: true, row: i + 1, name: name, hash: norm_(rows[i][3]) };
     }
   }
   return { ok: false, msg: '명단에 없는 번호예요. 선생님께 확인해 주세요.' };
+}
+
+// 캐시로 비밀번호가 맞으면 바로 통과, 안 맞거나 없으면 시트에서 한 번 더 확인
+// (방금 비밀번호를 만든 학생이 캐시 때문에 막히지 않게)
+function verifyStudent_(cls, num, pw) {
+  var hash = hashPw_(cls, num, pw);
+  var found = findStudent_(cls, num, false);
+  if (found.ok && found.hash && found.hash === hash) {
+    found.match = true;
+    return found;
+  }
+  found = findStudent_(cls, num, true);
+  if (found.ok) found.match = !!found.hash && found.hash === hash;
+  return found;
 }
 
 function authStudent_(params) {
   var cls = numKey_(params.cls);
   var num = numKey_(params.num);
   var pw = String(params.pw == null ? '' : params.pw);
-  var found = findStudent_(cls, num);
+  var found = verifyStudent_(cls, num, pw);
   if (!found.ok) return found;
-  if (!found.hash || found.hash !== hashPw_(cls, num, pw)) {
+  if (!found.match) {
     return { ok: false, relogin: true, msg: '로그인 정보가 맞지 않아요. 나갔다가 다시 들어와 주세요.' };
   }
   return { ok: true, cls: cls, num: num, name: found.name };
@@ -358,15 +419,16 @@ function authStudent_(params) {
 
 function studentPayload_(cls, num, name) {
   var settings = readSettings_();
-  var rows = getDataSheet_().getDataRange().getValues();
+  var sh = getDataSheet_();
+  var rows = readIndex_(sh);
   var data = null;
   var savedAt = '';
   var counts = {};
   for (var i = 1; i < rows.length; i++) {
     if (numKey_(rows[i][0]) !== cls) continue;
     if (numKey_(rows[i][1]) === num) {
-      data = parseJson_(rows[i][COL_JSON - 1]);
       savedAt = norm_(rows[i][COL_SAVED - 1]);
+      data = parseJson_(sh.getRange(i + 1, COL_JSON).getValue()); // 이 학생 한 칸만 읽음
     } else {
       var ct = norm_(rows[i][COL_COUNTRY - 1]);
       if (ct) counts[ct] = (counts[ct] || 0) + 1;
@@ -385,7 +447,7 @@ function studentPayload_(cls, num, name) {
 }
 
 function countryCounts_(cls, num) {
-  var rows = getDataSheet_().getDataRange().getValues();
+  var rows = readIndex_(getDataSheet_());
   var counts = {};
   for (var i = 1; i < rows.length; i++) {
     if (numKey_(rows[i][0]) !== cls) continue;
@@ -394,6 +456,13 @@ function countryCounts_(cls, num) {
     if (ct) counts[ct] = (counts[ct] || 0) + 1;
   }
   return counts;
+}
+
+// 작성데이터에서 앞쪽 5칸만 읽기 (작성 내용 JSON은 읽지 않음)
+function readIndex_(sh) {
+  var last = sh.getLastRow();
+  if (last < 1) return [];
+  return sh.getRange(1, 1, last, INDEX_COLS).getValues();
 }
 
 function getDataSheet_() {
@@ -411,7 +480,11 @@ function getDataSheet_() {
   return sh;
 }
 
-function readSettings_() {
+function readSettings_(fresh) {
+  if (!fresh) {
+    var cached = cacheGet_(CACHE_SETTINGS);
+    if (cached) return cached;
+  }
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_SETTING);
   var map = {};
   if (!sh) return map;
@@ -419,6 +492,7 @@ function readSettings_() {
   for (var i = 1; i < rows.length; i++) {
     map[norm_(rows[i][0])] = norm_(rows[i][1]);
   }
+  cachePut_(CACHE_SETTINGS, map);
   return map;
 }
 
@@ -444,7 +518,7 @@ function isLocked_(settings, cls) {
 }
 
 function checkTeacher_(params) {
-  var settings = readSettings_();
+  var settings = readSettings_(true);
   var tp = settings['교사비밀번호'];
   if (!tp || tp === DEFAULT_TEACHER_PW) {
     return { ok: false, msg: '설정 시트에서 교사 비밀번호를 먼저 바꿔 주세요.' };

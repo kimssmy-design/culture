@@ -21,6 +21,7 @@ var Teacher = (function () {
   /* ---------- 로그인·불러오기 ---------- */
   async function load(btn) {
     Common.setBusy(btn, true, '불러오는 중');
+    var stopHint = Common.slowHint($('dashView').hidden ? $('tLoginSlow') : null);
     try {
       var res = await Api.call('tload', { tpw: tpw });
       if (!res.ok) {
@@ -41,6 +42,7 @@ var Teacher = (function () {
       if (!$('dashView').hidden) Common.toast(msg, 'error'); else $('tLoginMsg').textContent = msg;
       return false;
     } finally {
+      stopHint();
       Common.setBusy(btn, false);
     }
   }
