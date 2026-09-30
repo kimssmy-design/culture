@@ -47,6 +47,57 @@ var Form = (function () {
     bindOnce();
     setSaveState(payload.savedAt ? 'saved' : 'never', payload.savedAt);
     applyLock(locked);
+
+    Draft.init(cred);
+    SaveReminder.start(showReminder);
+    if (!locked) offerRestore(payload.data, payload.savedAt);
+  }
+
+  /* ---------- 태블릿 임시 보관 불러오기 ---------- */
+  // '2026-09-29 14:05'(한국 시각) → 밀리초
+  function serverTime(s) {
+    var m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+    if (!m) return 0;
+    return Date.parse(m[1] + '-' + m[2] + '-' + m[3] + 'T' + m[4] + ':' + m[5] + ':59+09:00');
+  }
+
+  function offerRestore(serverData, savedAt) {
+    var draft = Draft.read();
+    if (!draft) return;
+    var same = JSON.stringify(Common.normalize(draft.data)) === JSON.stringify(Common.normalize(serverData));
+    if (same || (savedAt && draft.ts <= serverTime(savedAt))) {
+      Draft.clear(); // 서버 내용이 같거나 더 최신이면 임시 보관은 필요 없음
+      return;
+    }
+    var d = new Date(draft.ts);
+    $('restoreWhen').textContent = (d.getMonth() + 1) + '/' + d.getDate() + ' ' +
+      String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    $('restoreOverlay').hidden = false;
+    document.body.classList.add('no-scroll');
+
+    $('restoreLoad').onclick = function () {
+      state = Common.normalize(draft.data);
+      renderAll();
+      closeRestore();
+      markDirty();
+      Common.toast('불러왔어요. 꼭 저장 버튼을 눌러 주세요.', 'ok');
+    };
+    $('restoreDiscard').onclick = function () {
+      if (!confirm('태블릿에 남은 내용을 버릴까요? 되돌릴 수 없어요.')) return;
+      Draft.clear();
+      closeRestore();
+    };
+  }
+
+  function closeRestore() {
+    $('restoreOverlay').hidden = true;
+    document.body.classList.remove('no-scroll');
+  }
+
+  /* ---------- 10분 저장 알림 ---------- */
+  function showReminder(on) {
+    $('remindBar').hidden = !on;
+    $('saveBtn').classList.toggle('pulse', on);
   }
 
   function renderAll() {
@@ -217,6 +268,8 @@ var Form = (function () {
     if (locked) return;
     dirty = true;
     setSaveState('dirty');
+    Draft.write(state);
+    SaveReminder.markDirty();
   }
 
   function setSaveState(kind, when) {
@@ -234,16 +287,37 @@ var Form = (function () {
     return m ? Number(m[1]) + '/' + Number(m[2]) + ' ' + m[3] : String(s || '');
   }
 
+  /* ---------- 저장 대기 화면 ---------- */
+  var waitTimers = [];
+  function showWait(on) {
+    waitTimers.forEach(clearTimeout);
+    waitTimers = [];
+    $('saveOverlay').hidden = !on;
+    if (!on) return;
+    $('saveWaitTitle').textContent = '저장하고 있어요';
+    $('saveWaitMsg').textContent = '친구들이 한꺼번에 저장하면 조금 걸릴 수 있어요. 다른 버튼을 누르거나 화면을 나가지 말고 기다려 주세요.';
+    waitTimers.push(setTimeout(function () {
+      $('saveWaitTitle').textContent = '조금만 더 기다려 주세요';
+      $('saveWaitMsg').textContent = '곧 끝나요. 화면을 나가지 말아 주세요.';
+    }, 8000));
+    waitTimers.push(setTimeout(function () {
+      $('saveWaitTitle').textContent = '저장하는 친구들이 많아요';
+      $('saveWaitMsg').textContent = '차례를 기다리는 중이에요. 그래도 화면을 나가지 말고 기다려 주세요.';
+    }, 20000));
+  }
+
   async function save() {
     if (locked || saving) return;
     saving = true;
-    var btn = $('saveBtn');
-    Common.setBusy(btn, true, '저장 중');
+    if (document.activeElement) document.activeElement.blur();
+    showWait(true);
     try {
-      var res = await Api.call('save', { cls: cred.cls, num: cred.num, pw: cred.pw, data: state });
+      var res = await Api.call('save', { cls: cred.cls, num: cred.num, pw: cred.pw, data: state }, 2);
       if (res.counts) counts = res.counts;
       if (res.ok) {
         dirty = false;
+        Draft.clear();
+        SaveReminder.markSaved();
         setSaveState('saved', res.savedAt);
         Common.toast('저장했어요', 'ok');
         renderCountry();
@@ -253,10 +327,10 @@ var Form = (function () {
         Common.toast(res.msg || '저장하지 못했어요. 다시 눌러 주세요.', 'error');
       }
     } catch (e) {
-      Common.toast('인터넷 연결을 확인하고 다시 저장해 주세요.', 'error');
+      Common.toast('인터넷 연결을 확인하고 다시 저장해 주세요. 쓴 내용은 태블릿에 남아 있어요.', 'error');
     } finally {
       saving = false;
-      Common.setBusy(btn, false);
+      showWait(false);
     }
   }
 
@@ -269,10 +343,12 @@ var Form = (function () {
     locked = on;
     $('lockBanner').hidden = !on;
     $('saveBtn').hidden = on;
+    document.body.classList.toggle('is-locked', on);
     if (on) {
       disableInside($('formRoot'));
       dirty = false;
       setSaveState('locked');
+      SaveReminder.stop();
     }
   }
 
@@ -313,6 +389,9 @@ var Form = (function () {
     });
 
     $('saveBtn').addEventListener('click', save);
+    $('formRoot').addEventListener('click', function (e) {
+      if (e.target.closest('[data-save]')) save();
+    });
     $('previewBtn').addEventListener('click', openPreview);
     $('previewClose').addEventListener('click', closePreview);
     window.addEventListener('resize', function () {
@@ -320,7 +399,7 @@ var Form = (function () {
     });
 
     window.addEventListener('beforeunload', function (e) {
-      if (dirty) { e.preventDefault(); e.returnValue = ''; }
+      if (dirty || saving) { e.preventDefault(); e.returnValue = ''; }
     });
   }
 

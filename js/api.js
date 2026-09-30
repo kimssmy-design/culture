@@ -21,7 +21,7 @@ var Api = (function () {
 
     for (var i = 1; i <= tries; i++) {
       var controller = new AbortController();
-      var timer = setTimeout(function () { controller.abort(); }, 25000);
+      var timer = setTimeout(function () { controller.abort(); }, 40000);
       try {
         var res = await fetch(url, {
           method: 'POST',

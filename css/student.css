@@ -224,3 +224,62 @@
   .progress { max-width: none; }
   .who span { display: none; }
 }
+
+/* ---------- 단계별 저장 버튼 (화면에만 보임, 인쇄 안 됨) ---------- */
+.card-save { display: flex; justify-content: flex-end; margin-top: 16px; }
+.btn-section-save {
+  min-height: 42px;
+  font-size: 15px;
+  color: var(--sea-deep);
+  border-color: var(--sea);
+  background: var(--sea-tint);
+}
+.btn-section-save:hover:not(:disabled) { background: #D3E7EA; }
+body.is-locked .card-save { display: none; }
+
+/* ---------- 10분 저장 알림 ---------- */
+.remind-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  padding: 10px 20px;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  font-size: 15px;
+  font-weight: 600;
+  border-top: 1px solid #F0D98A;
+}
+#saveBtn.pulse { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(227, 188, 90, 0.9); }
+  50% { box-shadow: 0 0 0 7px rgba(227, 188, 90, 0); }
+}
+
+/* ---------- 저장 대기 화면 · 불러오기 창 ---------- */
+.wait-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(16, 30, 38, 0.72);
+}
+.wait-box {
+  width: min(420px, 100%);
+  padding: 28px 26px;
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.wait-box b { font-size: 19px; color: var(--sea-deep); }
+.wait-box p { margin: 0; font-size: 16px; color: var(--ink-2); line-height: 1.6; word-break: keep-all; }
+.wait-spinner { width: 34px; height: 34px; border-width: 3px; color: var(--sea); }
+.wait-btns { display: flex; gap: 10px; margin-top: 8px; }
+.wait-btns button { min-width: 110px; }

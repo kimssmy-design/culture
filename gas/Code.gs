@@ -163,9 +163,10 @@ function handleSave(params) {
   var jsonText = JSON.stringify(d);
   if (jsonText.length > MAX_JSON_LENGTH) return { ok: false, msg: '내용이 너무 길어요. 조금 줄여 주세요.' };
 
+  // 저장이 몰려도 실패하지 않도록 최대 28초까지 차례를 기다림
   var lock = LockService.getScriptLock();
-  try { lock.waitLock(15000); }
-  catch (e) { return { ok: false, msg: '지금 많은 친구들이 동시에 저장하고 있어요. 잠시 후 다시 눌러 주세요.' }; }
+  try { lock.waitLock(28000); }
+  catch (e) { return { ok: false, msg: '지금 많은 친구들이 동시에 저장하고 있어요. 10초쯤 뒤에 다시 눌러 주세요. 쓴 내용은 그대로 있어요.' }; }
 
   try {
     var settings = readSettings_();

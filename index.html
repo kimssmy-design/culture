@@ -65,18 +65,21 @@
         <h2><span class="step">1</span>조사할 나라</h2>
         <select id="country" class="country-select"></select>
         <p id="countryMsg" class="banner" hidden></p>
+        <div class="card-save"><button type="button" class="btn-section-save" data-save>여기까지 저장</button></div>
       </section>
 
       <section class="card">
         <h2><span class="step">2</span>기본 정보</h2>
         <p class="card-hint">책이나 인터넷에서 찾아 적어요. 면적은 한국과 비교해 적으면 더 알기 쉬워요.</p>
         <div id="basicGrid" class="grid-basic"></div>
+        <div class="card-save"><button type="button" class="btn-section-save" data-save>여기까지 저장</button></div>
       </section>
 
       <section class="card">
         <h2><span class="step">3</span>음식과 전통의상</h2>
         <p class="card-hint">이름과 한 줄 소개만 적어요. 그림은 포스터를 인쇄한 뒤 빈칸에 직접 그려요.</p>
         <div id="drawGrid" class="grid-two"></div>
+        <div class="card-save"><button type="button" class="btn-section-save" data-save>여기까지 저장</button></div>
       </section>
 
       <section class="card">
@@ -90,27 +93,32 @@
           </select>
         </label>
         <div id="tripDays" class="days"></div>
+        <div class="card-save"><button type="button" class="btn-section-save" data-save>여기까지 저장</button></div>
       </section>
 
       <section class="card">
         <h2><span class="step">5</span>여행 회화</h2>
         <p class="card-hint">여행에서 쓸 수 있는 말을 그 나라 말로 찾아 적어요. 문장 5는 내가 고른 말로 채워도 돼요.</p>
         <div id="phraseList" class="phrases"></div>
+        <div class="card-save"><button type="button" class="btn-section-save" data-save>여기까지 저장</button></div>
       </section>
 
       <section class="card">
         <h2><span class="step">6</span>우리나라와 다른 문화 3가지</h2>
         <div id="diffList" class="diffs"></div>
+        <div class="card-save"><button type="button" class="btn-section-save" data-save>여기까지 저장</button></div>
       </section>
 
       <section class="card">
         <h2><span class="step">7</span>느낀 점</h2>
         <textarea id="feeling" data-k="feeling" rows="5" placeholder="이 나라를 조사하며 새롭게 알게 된 점, 존중하고 싶은 점을 적어요."></textarea>
         <p id="feelingCount" class="counter"></p>
+        <div class="card-save"><button type="button" class="btn-section-save" data-save>여기까지 저장</button></div>
       </section>
     </main>
 
     <footer class="savebar">
+      <div id="remindBar" class="remind-bar" role="status" hidden>10분 넘게 저장하지 않았어요. 저장 버튼을 눌러 주세요.</div>
       <span id="saveState" class="save-state never">아직 저장하지 않았어요</span>
       <div class="savebar-btns">
         <button id="previewBtn">미리보기</button>
@@ -127,6 +135,27 @@
         <button id="previewClose">닫기</button>
       </div>
       <div id="previewBox" class="poster-fit"></div>
+    </div>
+  </div>
+
+  <!-- ===== 저장 대기 화면 ===== -->
+  <div id="saveOverlay" class="wait-overlay" role="alertdialog" aria-live="assertive" aria-labelledby="saveWaitTitle" hidden>
+    <div class="wait-box">
+      <span class="spinner wait-spinner" aria-hidden="true"></span>
+      <b id="saveWaitTitle">저장하고 있어요</b>
+      <p id="saveWaitMsg"></p>
+    </div>
+  </div>
+
+  <!-- ===== 태블릿 임시 보관 불러오기 ===== -->
+  <div id="restoreOverlay" class="wait-overlay" role="dialog" aria-modal="true" aria-labelledby="restoreTitle" hidden>
+    <div class="wait-box">
+      <b id="restoreTitle">저장하지 못한 내용이 태블릿에 남아 있어요</b>
+      <p><span id="restoreWhen"></span>에 쓰던 내용이에요. 불러올까요?</p>
+      <div class="wait-btns">
+        <button id="restoreDiscard" type="button">버리기</button>
+        <button id="restoreLoad" type="button" class="btn-primary">불러오기</button>
+      </div>
     </div>
   </div>
 
@@ -147,6 +176,7 @@
   <script src="js/api.js"></script>
   <script src="js/common.js"></script>
   <script src="js/poster.js"></script>
+  <script src="js/draft.js"></script>
   <script src="js/form.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/qr.js"></script>
