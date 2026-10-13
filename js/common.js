@@ -17,12 +17,13 @@ var Common = (function () {
     { key: 'flower', label: '국화', ph: '나라꽃' }
   ];
 
-  // 입력 칸 글자 수 제한 (포스터 칸에 맞춘 값)
+  // 권장 글자 수 (입력을 막지는 않음 — 넘으면 빨간색 안내만)
+  // ※ 한글 입력 중 maxlength에 닿으면 글자가 지워지는 태블릿 문제 때문에 하드 제한은 쓰지 않음
   var LIMITS = {
-    basic: 20, foodName: 15, foodIntro: 40,
-    place: 12, desc: 22,
-    orig: 20, pron: 16, mean: 15, situ: 18,
-    diff: 50, feeling: 240
+    basic: 100, foodName: 100, foodIntro: 100,
+    place: 100, desc: 100,
+    orig: 100, pron: 100, mean: 100, situ: 100,
+    diff: 100, feeling: 240
   };
 
   function esc(s) {

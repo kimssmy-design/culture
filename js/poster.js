@@ -92,9 +92,69 @@ var Poster = (function () {
     box.style.height = Math.ceil(p.offsetHeight * scale) + 'px';
   }
 
+  /* ---------- 글이 긴 칸은 글씨를 줄여서 맞춤 ---------- */
+  // [넘치는지 볼 상자, 글씨를 줄일 대상] — 대상이 없으면 상자 자체
+  var FIT_TARGETS = [
+    ['.p-basic', 'dl'],
+    ['.p-day', null],
+    ['.p-draw-cap', null],
+    ['.p-phrases', 'ol'],
+    ['.p-diffs', 'ol'],
+    ['.p-feel', 'p']
+  ];
+  var MIN_PX = 6.5 * 96 / 72; // 가장 작게 줄일 글씨 6.5pt
+
+  function overflowing(el) {
+    return el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1;
+  }
+
+  // 포스터 한 장을 맞추고, 그래도 넘치는 칸 수를 돌려줌
+  function autoFit(poster) {
+    var bad = 0;
+    FIT_TARGETS.forEach(function (pair) {
+      poster.querySelectorAll(pair[0]).forEach(function (box) {
+        var target = pair[1] ? box.querySelector(pair[1]) : box;
+        if (!target) return;
+        target.style.fontSize = '';
+        box.classList.remove('p-overflow');
+        var px = parseFloat(getComputedStyle(target).fontSize);
+        var guard = 0;
+        while (overflowing(box) && px > MIN_PX && guard < 60) {
+          px = Math.max(MIN_PX, px - 0.3);
+          target.style.fontSize = px + 'px';
+          guard++;
+        }
+        if (overflowing(box)) { box.classList.add('p-overflow'); bad++; }
+      });
+    });
+    return bad;
+  }
+
+  function fitAll(root) {
+    var bad = 0;
+    root.querySelectorAll('.poster').forEach(function (p) {
+      var t = p.style.transform;
+      p.style.transform = 'none';
+      bad += autoFit(p);
+      p.style.transform = t;
+    });
+    return bad;
+  }
+
+  // 미리보기: 넘치는 칸이 있으면 그 개수를 돌려줌 (0이면 문제 없음)
   function showIn(box, info, data) {
     box.innerHTML = render(info, data);
+    var bad = fitAll(box);
     fit(box);
+    // 글꼴이 늦게 도착하면 한 번 더 맞춤
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (!box.querySelector('.poster')) return;
+        fitAll(box);
+        fit(box);
+      });
+    }
+    return bad;
   }
 
   // items: [{ info, data }, ...] — 한 장에 한 명씩 인쇄
@@ -102,7 +162,13 @@ var Poster = (function () {
     var area = document.getElementById('printArea');
     if (!area || !items.length) return;
     area.innerHTML = items.map(function (it) { return render(it.info, it.data); }).join('');
-    var go = function () { setTimeout(function () { window.print(); }, 150); };
+    var go = function () {
+      // 화면 밖에서 잠깐 펼쳐 글씨 크기를 맞춘 뒤 인쇄
+      area.classList.add('measuring');
+      fitAll(area);
+      area.classList.remove('measuring');
+      setTimeout(function () { window.print(); }, 150);
+    };
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
   }
 

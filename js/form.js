@@ -26,9 +26,27 @@ var Form = (function () {
     o[keys[keys.length - 1]] = value;
   }
 
+  // 입력칸 + 글자 수 표시 (maxlength는 쓰지 않음: 한글 조합 중 글자가 지워지는 문제 방지)
   function input(path, value, max, placeholder, extraClass) {
-    return '<input type="text" data-k="' + path + '" value="' + esc(value) + '" maxlength="' + max + '"' +
-      ' placeholder="' + esc(placeholder || '') + '"' + (extraClass ? ' class="' + extraClass + '"' : '') + '>';
+    return '<span class="inp"><input type="text" data-k="' + path + '" value="' + esc(value) + '" data-max="' + max + '"' +
+      ' placeholder="' + esc(placeholder || '') + '"' + (extraClass ? ' class="' + extraClass + '"' : '') + '>' +
+      '<span class="cnt" aria-live="polite"></span></span>';
+  }
+
+  // 권장 글자 수의 80%가 넘으면 보여주고, 넘으면 빨간색
+  function updateFieldCounter(el) {
+    var max = parseInt(el.dataset.max, 10);
+    var cnt = el.parentNode && el.parentNode.querySelector('.cnt');
+    if (!max || !cnt) return;
+    var len = el.value.length;
+    var over = len > max;
+    el.classList.toggle('over', over);
+    cnt.classList.toggle('over', over);
+    cnt.textContent = len >= max * 0.8 ? len + ' / ' + max + (over ? ' 줄여 주세요' : '') : '';
+  }
+
+  function refreshCounters(root) {
+    root.querySelectorAll('input[data-max]').forEach(updateFieldCounter);
   }
 
   /* ---------- 시작 ---------- */
@@ -109,6 +127,7 @@ var Form = (function () {
     renderDiffs();
     renderFeeling();
     updateProgress();
+    refreshCounters($('formRoot'));
   }
 
   /* ---------- 1. 나라 ---------- */
@@ -214,6 +233,7 @@ var Form = (function () {
       h += '</div></div>';
     }
     $('tripDays').innerHTML = h;
+    refreshCounters($('tripDays'));
     if (locked) disableInside($('tripDays'));
   }
 
@@ -247,13 +267,17 @@ var Form = (function () {
   /* ---------- 7. 느낀 점 ---------- */
   function renderFeeling() {
     var ta = $('feeling');
-    ta.maxLength = L.feeling;
+    ta.removeAttribute('maxlength');
     ta.value = state.feeling;
     updateCounter();
   }
 
   function updateCounter() {
-    $('feelingCount').textContent = state.feeling.length + ' / ' + L.feeling;
+    var over = state.feeling.length > L.feeling;
+    var c = $('feelingCount');
+    c.textContent = state.feeling.length + ' / ' + L.feeling + (over ? ' 포스터에 들어가도록 조금 줄여 주세요' : '');
+    c.classList.toggle('over', over);
+    $('feeling').classList.toggle('over', over);
   }
 
   /* ---------- 진행률 ---------- */
@@ -356,7 +380,8 @@ var Form = (function () {
   function openPreview() {
     $('previewOverlay').hidden = false;
     document.body.classList.add('no-scroll');
-    Poster.showIn($('previewBox'), cred, state);
+    var over = Poster.showIn($('previewBox'), cred, state);
+    $('previewWarn').hidden = !over;
   }
 
   function closePreview() {
@@ -375,6 +400,7 @@ var Form = (function () {
       if (!k || locked) return;
       setPath(state, k, e.target.value);
       if (k === 'feeling') updateCounter();
+      else if (e.target.dataset.max) updateFieldCounter(e.target);
       markDirty();
       updateProgress();
     });
