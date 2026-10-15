@@ -10,8 +10,8 @@ var CONFIG = {
   CLASSES: [
     { cls: '1', count: 25 },
     { cls: '2', count: 25 },
-    { cls: '3', count: 24 },
-    { cls: '4', count: 24 }
+    { cls: '3', count: 25 },
+    { cls: '4', count: 25 }
   ],
   // 같은 반에서 한 나라를 고를 수 있는 최대 인원 — GAS의 MAX_PER_COUNTRY와 같아야 해요.
   MAX_PER_COUNTRY: 2,
